@@ -1,0 +1,20 @@
+
+Hello Client
+HTTP/1.1 200 OK
+
+<html>
+    <body>
+
+1. current value: 1.56	1. voltage value: 53656.50	1. power is equal to 83704.14
+
+2. current value: 2.60	2. voltage value: 23658.50	2. power is equal to 61512.10
+
+3. current value: 0.80	3. voltage value: 23766.50	3. power is equal to 19013.20
+
+4. current value: 0.66	4. voltage value: 23660.50	4. power is equal to 15615.93
+
+5. current value: 0.68	5. voltage value: 23662.50	5. power is equal to 16090.50
+
+6. current value: 0.72	6. voltage value: 23666.50	6. power is equal to 17039.88
+    </body>
+</html>\F7\FF
