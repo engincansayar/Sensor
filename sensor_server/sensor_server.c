@@ -7,7 +7,6 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <pthread.h>
-//#define MAX_LINE 50
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 #define MAX 2048
 void *sensor_read(void *p_client_sc)
@@ -19,6 +18,7 @@ void *sensor_read(void *p_client_sc)
     printf("%s",buffer);
     FILE *sensor_data;
     char http_header[MAX] = "\nHello Client\nHTTP/1.1 200 OK\r\n\n";
+    //char http_header[MAX] = "HTTP/1.1 200 OK\r\n\n";
     char written_data[MAX];
     const char test = '!';
     int choose = 0;
@@ -33,10 +33,8 @@ void *sensor_read(void *p_client_sc)
     const char ch_2 = '/';
     int count = 0;
     const char ins = '#';
-    //strcat(http_header,written_data);
     pthread_mutex_lock(&lock);
     sensor_data = fopen("//home//mint//Desktop//sensor_server//sensor_data.html", "r");
-    //fread(data,10,MAX, sensor_data);
     int counter = 1;
     while(line = fgets(written_data,MAX, sensor_data)){
         char *segment;
@@ -59,7 +57,6 @@ void *sensor_read(void *p_client_sc)
         while(1){
             if(strchr(segment,ins))
             {
-                //choose++;
                 segment = strtok(NULL,",");
                 continue;
             }
@@ -98,6 +95,8 @@ void *sensor_read(void *p_client_sc)
     }
     pthread_mutex_unlock(&lock);
     int len = strlen(http_header) - 1;
+    //char *hold = "<html>\n\t<body>\n\t\tdfshhtrh\n\t</body>\n</html>\n";
+    //write(client_sc, hold, strlen(hold)-1);
     write(client_sc, http_header, len);
     close(client_sc);
     free(p_client_sc);
@@ -125,7 +124,6 @@ int main()
         *p_client_socket = client_socket;
         pthread_create(&thr, NULL, sensor_read, (void *)p_client_socket);
         pthread_detach(thr);
-        
     }
     return 0;
 }

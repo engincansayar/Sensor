@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <stdarg.h>
+#include <netdb.h>
+#include <signal.h>
+#define PORT 8001
+#define MAX_LINE 1000
+#define MAX 2048
+int main(char **argv){
+    char buffer[MAX];
+    double voltage;
+    double current;
+    int end;
+    int count = 1;
+    int line = 1;
+    int new_line;
+    char end_line[10] = "0!\n";
+    char written_data[MAX] = "*****SENSOR VALUES*****\n";
+    char ins[10] = "\t\t#";
+    char values[MAX_LINE];
+    char get_data[MAX] = "\nHello Server\nGET / HTTP/ 1.1\r\nHost:8001 \r\r\n\n";
+    int sockfd;
+    //char *request ="\nHello Server\nGET / HTTP/ 1.1\r\nHost:8001 \r\r\n\n";
+    char *html_open = "<html>\n\t<body>\n";
+    char *html_close = "\t</body>\n</html>\n";
+    //char *host ="localhost:8001" ;
+    int size;
+    struct sockaddr_in serv_addr;
+    bzero(&serv_addr, sizeof(serv_addr));
+    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_family = AF_INET;
+    sockfd = socket(AF_INET, SOCK_STREAM,0);
+    //inet_pton(AF_INET, argv[1], &serv_addr.sin_addr);
+    if(connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr))<0){
+        printf("\n Error : Connect Failed \n");
+        exit(0);
+    }
+    //sprintf(get_data,request);
+    FILE *sensor_data;
+    sensor_data = fopen("//home//mint//Desktop//sensor_server//data.txt","w");
+    while(1){
+        printf("\nIf you want to terminate, enter 0 else press 1 to continue\n");
+        scanf("%d",&new_line);
+        if(new_line == 0)
+        {
+            break;
+        }
+        printf("\nEnter your %d. line: \n",line);
+        strcat(written_data,ins);
+        while(1){
+            printf("Please enter your %d. current and voltage values: \nEnter -1 for any value to move to the next line\n",count);
+            printf("%d. current value: ",count);
+            scanf("%lf",&current);
+            printf("\n%d. voltage value: ",count);
+            scanf("%lf",&voltage);
+            if((current == -1) || (voltage == -1)){
+                strcat(written_data,end_line);
+                printf("\n%s\n",written_data);
+                line++;
+                break;
+            }
+            sprintf(values,",%lf,%lf,",current,voltage);
+            strcat(written_data,values);
+            count++;
+        }
+    }
+    fclose(sensor_data);
+    strcat(get_data,html_open);
+    strcat(get_data,written_data);
+    strcat(get_data,html_close);
+    size = sizeof(get_data);
+    write(sockfd,get_data, size);
+    read(sockfd, buffer, sizeof(buffer));
+    puts(buffer);
+    close(sockfd);
+}

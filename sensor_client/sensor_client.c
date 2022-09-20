@@ -28,14 +28,13 @@ int main(){
         printf("\n Error : Connect Failed \n");
         exit(0);
     }
-    //sprintf(get_data,request);
     FILE *sensor_data;
     size = sizeof(hello);
     write(sockfd,hello, size);
-    read(sockfd, buffer, sizeof(buffer));
+    size=read(sockfd, buffer, sizeof(buffer));
+    sensor_data = fopen("//home//mint//Desktop//sensor_client//data.txt","w");
+    fwrite(buffer,1,size,sensor_data);
     puts(buffer);
-    sensor_data = fopen("//home//mint//Desktop//sensor_server//data.txt","w");
-    fprintf(sensor_data,"%s",buffer);
     fclose(sensor_data);
     close(sockfd);
 }
