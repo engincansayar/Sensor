@@ -11,7 +11,9 @@ pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 #define MAX 2048
 void *sensor_read(void *p_client_sc)
 {
+    pthread_mutex_lock(&lock);
     char *line;
+    char de[MAX];
     FILE *sensor_data;
     FILE *sensor_data_1;
     char buffer[MAX];
@@ -24,7 +26,7 @@ void *sensor_read(void *p_client_sc)
     sensor_data_1 = fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "w");
     const char equal = '=';
     const char space = ' ';
-    char value[100];
+    char value[100] = "";
     char *new;
     new = strrchr(buffer,equal);
     int length = strlen(new);
@@ -33,14 +35,16 @@ void *sensor_read(void *p_client_sc)
             continue;
         }
         if(new[i]==' '){
+            strcat(value,end);
             break;
         }
         value[i-1] = new[i];
     }
     strcat(writer,head);
     strcat(writer,value);
-    strcat(writer,end);
-    fprintf(sensor_data_1,"%s",writer);
+    //fprintf(sensor_data_1,"%s",writer);
+    size_t size = strlen(writer);
+    fwrite(writer,1,size,sensor_data_1);
     fclose(sensor_data_1);
     char http_header[MAX] = "HTTP/1.1 200 OK\r\n\n";
     char written_data[MAX];
@@ -57,8 +61,8 @@ void *sensor_read(void *p_client_sc)
     const char ch_2 = '/';
     int count = 0;
     const char ins = '#';
-    pthread_mutex_lock(&lock);
-    sensor_data = fopen("//home//mint//Desktop//rest//sensor_data.txt", "r");
+    //pthread_mutex_lock(&lock);
+    sensor_data = fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "r");
     int counter = 1;
     while((line = fgets(written_data,MAX, sensor_data)) != 0){
         char *segment;
@@ -83,7 +87,7 @@ void *sensor_read(void *p_client_sc)
                 segment = strtok(NULL,",");
                 continue;
             }
-            else
+            else if(choose %2 == 1)
             {
                 voltage = atof(segment);
                 sprintf(voltage_str, "%d. voltage value: %.2lf\t", counter, voltage);
@@ -102,13 +106,13 @@ void *sensor_read(void *p_client_sc)
         }
         continue;
     }
-    pthread_mutex_unlock(&lock);
     int len = strlen(http_header) - 1;
     write(client_sc, http_header, len);
+    fclose(sensor_data);
     close(client_sc);
     free(p_client_sc);
-    fclose(sensor_data);
     fflush(stdout);
+    pthread_mutex_unlock(&lock);
     pthread_exit(NULL);
 }
 int main()
