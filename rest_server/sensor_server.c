@@ -9,111 +9,96 @@
 #include <pthread.h>
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 #define MAX 2048
+#define LIMIT 100
 void *sensor_read(void *p_client_sc)
 {
     pthread_mutex_lock(&lock);
-    char *line;
-    char de[MAX];
-    FILE *sensor_data;
-    FILE *sensor_data_1;
-    char buffer[MAX];
-    char writer[MAX];
-    char head[3] = "#,";
-    char end[3] = ",0!";
-    int client_sc = *((int *)p_client_sc);
-    read(client_sc,buffer,sizeof(buffer));
-    printf("%s",buffer);
-    sensor_data_1 = fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "w");
-    const char equal = '=';
-    const char space = ' ';
-    char value[100] = "";
+    char *check;
     char *new;
-    new = strrchr(buffer,equal);
-    int length = strlen(new);
-    for(int i=0;i<length;i++){
-        if(new[i]=='='){
-            continue;
-        }
-        if(new[i]==' '){
-            strcat(value,end);
-            break;
-        }
-        value[i-1] = new[i];
-    }
-    strcat(writer,head);
-    strcat(writer,value);
-    //fprintf(sensor_data_1,"%s",writer);
-    size_t size = strlen(writer);
-    fwrite(writer,1,size,sensor_data_1);
-    fclose(sensor_data_1);
+    char *d;
     char http_header[MAX] = "HTTP/1.1 200 OK\r\n\n";
-    char written_data[MAX];
-    const char test = '!';
-    int choose = 0;
-    double current;
-    double voltage;
-    double watt;
-    char counter_str[10];
-    char current_str[50];
-    char voltage_str[50];
-    char power_str[50];
-    const char ch_1 = '<';
-    const char ch_2 = '/';
-    int count = 0;
-    const char ins = '#';
-    //pthread_mutex_lock(&lock);
-    sensor_data = fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "r");
-    int counter = 1;
-    while((line = fgets(written_data,MAX, sensor_data)) != 0){
-        char *segment;
-        segment = strtok(line,",");
-        while(1){
-            if(strchr(segment,ins))
-            {
-                segment = strtok(NULL,",");
+    char *get = "GET";
+    char *post = "POST";
+    char *delete = "DELETE";
+    char *put = "PUT";
+    char *put_message = "\nPut operation is not available.\n";
+    char *delete_message = "\nThe content of the file is erased.\n";
+    FILE *sensor_data;
+    char buffer[MAX];
+    char writer[MAX]="";
+    char head[] = "#,";
+    char end[] = ",0!";
+    int client_sc = *((int *)p_client_sc);
+    size_t size = read(client_sc,buffer,sizeof(buffer));
+    printf("%s",buffer);
+    check = strtok(buffer," ");
+    if(!strcmp(check,get))
+    {
+        sensor_data = fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "r");
+        fread(writer,size+1,1,sensor_data); 
+        strcat(http_header,writer); 
+        int len = strlen(http_header) - 1;
+        write(client_sc, http_header, len);
+        fclose(sensor_data);
+        close(client_sc);
+        free(p_client_sc);
+        fflush(stdout);
+        pthread_mutex_unlock(&lock);
+        pthread_exit(NULL);
+    }
+    if(!strcmp(check,post))
+    {
+        sensor_data = fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "a");
+        const char equal = '=';
+        char value[LIMIT] = "";
+        new = strchr(buffer,equal);
+        size_t length = strlen(new);
+        for(int i=0;i<length;i++){
+            if(new[i]=='='){
                 continue;
             }
-            if(strchr(segment,test))
-            {
-                segment = strtok(NULL,"0!\n");
+            if(new[i]==' '){
+                strcat(value,end);
                 break;
             }
-            else if(choose % 2 == 0)
-            { 
-                current = atof(segment); 
-                choose++;
-                sprintf(current_str, "\n%d. current value: %.2lf\t", counter, current);
-                strcat(http_header, current_str);  
-                segment = strtok(NULL,",");
-                continue;
-            }
-            else if(choose %2 == 1)
-            {
-                voltage = atof(segment);
-                sprintf(voltage_str, "%d. voltage value: %.2lf\t", counter, voltage);
-                strcat(http_header, voltage_str);
-                choose++;
-                watt = current * voltage;
-                sprintf(power_str, "%d. power is equal to %.2lf\n", counter, watt);
-                strcat(http_header, power_str);
-                counter++;
-                //printf("\n%s\n", http_header);
-                segment = strtok(NULL,",");
-                continue;
-            }
-            segment = strtok(NULL,",");
-            continue;
+            value[i-1] = new[i];
         }
-        continue;
+        strcat(writer,head);
+        strcat(writer,value);
+        fwrite(writer,1,size,sensor_data);
+        fclose(sensor_data);
+        int len = strlen(http_header) - 1;
+        write(client_sc, http_header, len);
+        close(client_sc);
+        free(p_client_sc);
+        fflush(stdout);
+        pthread_mutex_unlock(&lock);
+        pthread_exit(NULL);
     }
-    int len = strlen(http_header) - 1;
-    write(client_sc, http_header, len);
-    fclose(sensor_data);
-    close(client_sc);
-    free(p_client_sc);
-    fflush(stdout);
-    pthread_mutex_unlock(&lock);
-    pthread_exit(NULL);
+    if(!strcmp(check,delete))
+    {
+        strcat(http_header,delete_message);
+        fclose(fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "w"));
+        int len = strlen(http_header) - 1;
+        write(client_sc, http_header, len);
+        close(client_sc);
+        free(p_client_sc);
+        fflush(stdout);
+        pthread_mutex_unlock(&lock);
+        pthread_exit(NULL);
+
+    }
+    if(!strcmp(check,put)){
+        strcat(http_header,put_message);
+        int len = strlen(http_header) - 1;
+        write(client_sc, http_header, len);
+        close(client_sc);
+        free(p_client_sc);
+        fflush(stdout);
+        pthread_mutex_unlock(&lock);
+        pthread_exit(NULL);
+    }
+
 }
 int main()
 {
