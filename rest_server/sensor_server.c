@@ -14,13 +14,12 @@ void *sensor_read(void *p_client_sc)
 {
     pthread_mutex_lock(&lock);
     char *check;
-    char *new;
-    char *d;
     char http_header[MAX] = "HTTP/1.1 200 OK\r\n\n";
     char *get = "GET";
     char *post = "POST";
     char *delete = "DELETE";
     char *put = "PUT";
+    char *post_message = "\nInput values successfully added to the file\n";
     char *put_message = "\nPut operation is not available.\n";
     char *delete_message = "\nThe content of the file is erased.\n";
     FILE *sensor_data;
@@ -49,24 +48,30 @@ void *sensor_read(void *p_client_sc)
     if(!strcmp(check,post))
     {
         sensor_data = fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "a");
+        char *new;
         const char equal = '=';
-        char value[LIMIT] = "";
-        new = strchr(buffer,equal);
-        size_t length = strlen(new);
-        for(int i=0;i<length;i++){
-            if(new[i]=='='){
-                continue;
-            }
-            if(new[i]==' '){
+        char value[LIMIT];
+        int j = 0;
+        //size_t length = strlen(new);
+        for(int i=0;i<size;i++){
+            if(buffer[i]==' '){
                 strcat(value,end);
                 break;
             }
-            value[i-1] = new[i];
+            if((buffer[i]=='0') || (buffer[i]=='1') || (buffer[i]=='2') || (buffer[i]=='3') || (buffer[i]=='4') || (buffer[i]=='5') || (buffer[i]=='6') || (buffer[i]=='7') || (buffer[i]=='8') || (buffer[i]=='9') || (buffer[i]=='.') || (buffer[i]==','))
+            {
+                value[j] = buffer[i];
+                j++;
+            }
+            
         }
-        strcat(writer,head);
-        strcat(writer,value);
-        fwrite(writer,1,size,sensor_data);
+        strncat(writer,head,2);
+        int length_1 = strlen(value);
+        strncat(writer,value,length_1);
+        int length_2 = strlen(writer);
+        fwrite(writer,1,length_2,sensor_data);
         fclose(sensor_data);
+        strcat(http_header,post_message);
         int len = strlen(http_header) - 1;
         write(client_sc, http_header, len);
         close(client_sc);
@@ -98,7 +103,6 @@ void *sensor_read(void *p_client_sc)
         pthread_mutex_unlock(&lock);
         pthread_exit(NULL);
     }
-
 }
 int main()
 {
