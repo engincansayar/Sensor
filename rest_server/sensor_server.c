@@ -50,7 +50,7 @@ void *sensor_read(void *p_client_sc)
         sensor_data = fopen("//home//mint//Desktop//rest_server//sensor_data.txt", "a");
         char *new;
         const char equal = '=';
-        char value[LIMIT];
+        char value[LIMIT] ="";
         int j = 0;
         //size_t length = strlen(new);
         for(int i=0;i<size;i++){
