@@ -72,7 +72,7 @@ void *sensor_read(void *p_client_sc)
         fwrite(writer,1,length_2,sensor_data);
         fclose(sensor_data);
         strcat(http_header,post_message);
-        int len = strlen(http_header) - 1;
+        int len = strlen(http_header);
         write(client_sc, http_header, len);
         close(client_sc);
         free(p_client_sc);
