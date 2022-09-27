@@ -1,2 +1,2 @@
 ## Sensor
-####Şu anda sadece GET çalışıyor.
+###Şu anda GET ve POST yapabiliyorum sadece DELETE kaldı.
