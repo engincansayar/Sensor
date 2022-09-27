@@ -182,7 +182,11 @@ void *sensor_read(void *p_client_sc)
             pthread_mutex_unlock(&lock);
             pthread_exit(NULL);
         }
-        char *sql = "INSERT INTO Power(Id,Current,Voltage) VALUES(NULL,current_lf, voltage);";
+        //char *sql = "INSERT INTO Power(Id,Current,Voltage) VALUES(NULL,current_lf, voltage);";
+        char sql[MAX];
+        sprintf(sql,"INSERT INTO Power(Id,Current,Voltage) VALUES(NULL,%lf, %lf)",current_lf,voltage);
+
+
         rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
     
         if (rc != SQLITE_OK ) {
