@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  sqliteserver:
+    image: sqliteserver
+    build:
+      context: .
+      dockerfile: ./Dockerfile
